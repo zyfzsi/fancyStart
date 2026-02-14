@@ -1,9 +1,11 @@
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Interop;
+using FancyStart.Services;
 using FancyStart.ViewModels;
 
 namespace FancyStart;
@@ -80,6 +82,14 @@ public partial class MainWindow : Window
                 var filePath = sb.ToString();
                 if (IsValidFileType(filePath))
                 {
+                    // Resolve .lnk shortcut to its target exe
+                    if (Path.GetExtension(filePath).Equals(".lnk", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var (target, _) = FolderStartupProvider.ResolveShortcut(filePath);
+                        if (!string.IsNullOrEmpty(target))
+                            filePath = target;
+                    }
+
                     ViewModel.AddItemCommand.Execute(filePath);
                 }
             }
