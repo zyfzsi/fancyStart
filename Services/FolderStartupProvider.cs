@@ -169,7 +169,7 @@ public class FolderStartupProvider : IStartupProvider
         }
     }
 
-    private static (string Target, string Arguments) ResolveShortcut(string lnkPath)
+    internal static (string Target, string Arguments) ResolveShortcut(string lnkPath)
     {
         try
         {
