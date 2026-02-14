@@ -42,7 +42,11 @@
       "WebFetch(domain:github.com)",
       "Bash(gh search code:*)",
       "Bash(gh issue list:*)",
-      "Bash(gh issue view:*)"
+      "Bash(gh issue view:*)",
+      "Bash(pip show:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python -c:*)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" release list:*)"
     ]
   }
 }

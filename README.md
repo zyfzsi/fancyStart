@@ -17,30 +17,14 @@ Windows 开机启动项管理工具，基于 WPF (.NET 8) 构建。
 
 ## 截图
 
-启动后自动以管理员权限运行，列出所有启动项：
-
-```
-┌─ FancyStart - 启动项管理 ──────────────────────┐
-│  FancyStart                                      │
-│  启动项管理工具                                    │
-│──────────────────────────────────────────────────│
-│  ▸ 注册表                                        │
-│    [icon] SecurityHealth  C:\Windows\...  [●━━]  │
-│    [icon] Discord         C:\Users\...   [━━○]  │
-│  ▸ 启动文件夹                                     │
-│    [icon] Startup App     C:\Program...  [●━━]  │
-│  ▸ 计划任务                                       │
-│    [icon] GoogleUpdate    C:\Program...  [●━━]  │
-│──────────────────────────────────────────────────│
-│  共 4 个启动项，已启用 3 个                         │
-└──────────────────────────────────────────────────┘
-```
+![FancyStart](docs/screenshot.png)
 
 ## 下载
 
 前往 [Releases](https://github.com/zyfzsi/fancyStart/releases) 下载最新版本。
 
-`FancyStart-v1.0-win-x64.zip` 为自包含单文件，解压即用，无需安装 .NET 运行时。
+- `FancyStart-{版本}-win-x64.zip` — 独立版，解压即用，无需安装 .NET 运行时
+- `FancyStart-{版本}-win-x64-lite.zip` — 精简版，体积更小，需要安装 [.NET 8 桌面运行时](https://dotnet.microsoft.com/download/dotnet/8.0)
 
 ## 从源码构建
 
