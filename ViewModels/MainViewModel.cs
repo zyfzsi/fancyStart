@@ -1,9 +1,11 @@
 #nullable enable
 
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using FancyStart.Models;
@@ -16,8 +18,21 @@ public class MainViewModel : ViewModelBase
     private readonly StartupService _service = new();
     private int _totalCount;
     private int _enabledCount;
+    private string _searchText = string.Empty;
 
     public ObservableCollection<StartupItem> StartupItems { get; } = new();
+
+    public ICollectionView ItemsView { get; }
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+                ItemsView.Refresh();
+        }
+    }
 
     public int TotalCount
     {
@@ -42,6 +57,22 @@ public class MainViewModel : ViewModelBase
         ToggleItemCommand = new RelayCommand(p => ToggleItem(p as StartupItem));
         DeleteItemCommand = new RelayCommand(p => DeleteItem(p as StartupItem));
         AddItemCommand = new RelayCommand(p => AddItem(p as string));
+
+        ItemsView = CollectionViewSource.GetDefaultView(StartupItems);
+        ItemsView.GroupDescriptions.Add(
+            new PropertyGroupDescription("Source", new SourceTypeToStringConverter()));
+        ItemsView.Filter = FilterItem;
+    }
+
+    private bool FilterItem(object obj)
+    {
+        if (string.IsNullOrWhiteSpace(_searchText)) return true;
+        if (obj is not StartupItem item) return false;
+
+        var query = _searchText;
+        return item.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || item.Command.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || item.SourceDetail.Contains(query, StringComparison.OrdinalIgnoreCase);
     }
 
     private void Load()
