@@ -12,6 +12,7 @@ public class RegistryStartupProvider : IStartupProvider
     {
         (Registry.CurrentUser, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", "HKCU"),
         (Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", "HKLM"),
+        (Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run", "HKLM(x86)"),
     };
 
     public List<StartupItem> GetStartupItems()
@@ -185,6 +186,7 @@ public class RegistryStartupProvider : IStartupProvider
     public void Add(string filePath)
     {
         var runPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+        var approvedPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
 
         try
         {
@@ -193,7 +195,11 @@ public class RegistryStartupProvider : IStartupProvider
                 throw new InvalidOperationException("Could not open HKCU Run key for writing.");
 
             var valueName = Path.GetFileNameWithoutExtension(filePath);
-            key.SetValue(valueName, $"\"{filePath}\"", RegistryValueKind.String);
+            key.SetValue(valueName, filePath, RegistryValueKind.String);
+
+            // Write enabled flag to StartupApproved\Run (required by Windows 10/11)
+            using var approvedKey = Registry.CurrentUser.CreateSubKey(approvedPath, writable: true);
+            approvedKey?.SetValue(valueName, new byte[] { 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, RegistryValueKind.Binary);
         }
         catch (Exception ex) when (ex is not InvalidOperationException)
         {
@@ -217,6 +223,7 @@ public class RegistryStartupProvider : IStartupProvider
     /// <summary>
     /// Splits a raw registry value like <c>"C:\path\app.exe" -arg1 --arg2</c>
     /// into the executable command and its arguments.
+    /// Handles unquoted paths with spaces by probing file existence.
     /// </summary>
     internal static (string Command, string Arguments) ParseCommand(string rawValue)
     {
@@ -238,13 +245,21 @@ public class RegistryStartupProvider : IStartupProvider
             }
         }
 
-        // No quotes — split on first space
-        var spaceIndex = rawValue.IndexOf(' ');
-        if (spaceIndex > 0)
+        // No quotes — try to resolve the executable by probing each space boundary
+        var expanded = Environment.ExpandEnvironmentVariables(rawValue);
+        var spaceIndex = expanded.IndexOf(' ');
+        while (spaceIndex > 0)
         {
-            return (rawValue[..spaceIndex], rawValue[(spaceIndex + 1)..].TrimStart());
+            var candidate = expanded[..spaceIndex];
+            if (File.Exists(candidate))
+            {
+                var arguments = expanded[(spaceIndex + 1)..].TrimStart();
+                return (candidate, arguments);
+            }
+            spaceIndex = expanded.IndexOf(' ', spaceIndex + 1);
         }
 
-        return (rawValue, string.Empty);
+        // No space matched a real file — return the whole string as command
+        return (expanded, string.Empty);
     }
 }
