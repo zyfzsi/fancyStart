@@ -11,6 +11,7 @@ public class TaskSchedulerProvider : IStartupProvider
     private const int TASK_ACTION_EXEC = 0;
     private const int TASK_CREATE_OR_UPDATE = 6;
     private const int TASK_LOGON_INTERACTIVE_TOKEN = 3;
+    private const int TASK_RUNLEVEL_HIGHEST = 1;
 
     public List<StartupItem> GetStartupItems()
     {
@@ -120,6 +121,9 @@ public class TaskSchedulerProvider : IStartupProvider
             definition.Settings.Enabled = true;
             definition.Settings.StopIfGoingOnBatteries = false;
             definition.Settings.DisallowStartIfOnBatteries = false;
+
+            // Run with highest privileges so admin-required apps can start
+            definition.Principal.RunLevel = TASK_RUNLEVEL_HIGHEST;
 
             var taskName = Path.GetFileNameWithoutExtension(filePath);
             dynamic rootFolder = scheduler.GetFolder("\\");
