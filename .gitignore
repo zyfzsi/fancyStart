@@ -27,3 +27,7 @@ artifacts/
 *.swp
 *~
 .vscode/
+
+## Publish / Release artifacts
+publish/
+*.zip
