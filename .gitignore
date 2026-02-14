@@ -31,3 +31,6 @@ artifacts/
 ## Publish / Release artifacts
 publish/
 *.zip
+
+## Claude
+.claude/
